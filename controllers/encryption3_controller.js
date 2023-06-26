@@ -10,7 +10,7 @@ const iv_static_0 = Buffer.alloc(16, 0); // IV constante de 16 bytes lleno de ce
 const encrypt = async (req = request, res = response) => {
 
     const { textToEncrypt } = req.body;
-    const encryptedText = funEncrypt(textToEncrypt, secretKey, secretKey_IV);
+    const encryptedText = funEncrypt(textToEncrypt, secretKey, secretKey_IV, iv_static);
 
     res.status(201).json({
         ...encryptedText
@@ -20,14 +20,14 @@ const encrypt = async (req = request, res = response) => {
 const decrypt = async (req = request, res = response) => {
 
     const { encryptedIV, encrypted } = req.body;
-    const decryptedText = funDecrypt(encryptedIV, encrypted, secretKey, secretKey_IV);
+    const decryptedText = funDecrypt(encryptedIV, encrypted, secretKey, secretKey_IV, iv_static);
 
     res.status(201).json({
         decryptedText
     })
 };
 
-function funEncrypt(message, encryptionKey, ivEncryptionKey) {
+function funEncrypt(message, encryptionKey, ivEncryptionKey, iv_static) {
     const textEncoder = new TextEncoder();
     const key = textEncoder.encode(encryptionKey);
     const ivEncryptionKeyBuffer = textEncoder.encode(ivEncryptionKey);
@@ -37,7 +37,7 @@ function funEncrypt(message, encryptionKey, ivEncryptionKey) {
     let encrypted = cipher.update(message, 'utf8', 'base64');
     encrypted += cipher.final('base64');
 
-    const ivCipher = crypto.createCipheriv('aes-256-cbc', ivEncryptionKeyBuffer, iv_static_0);
+    const ivCipher = crypto.createCipheriv('aes-256-cbc', ivEncryptionKeyBuffer, iv_static);
     let encryptedIV = ivCipher.update(iv.toString('base64'), 'utf8', 'base64');
     encryptedIV += ivCipher.final('base64');
 
@@ -49,12 +49,12 @@ function funEncrypt(message, encryptionKey, ivEncryptionKey) {
     return encryptedText;
 }
 
-function funDecrypt(encryptedIV, encryptedText, encryptionKey, ivEncryptionKey) {
+function funDecrypt(encryptedIV, encryptedText, encryptionKey, ivEncryptionKey, iv_static) {
     const textEncoder = new TextEncoder();
     const key = textEncoder.encode(encryptionKey);
     const ivEncryptionKeyBuffer = textEncoder.encode(ivEncryptionKey);
 
-    const ivCipher = crypto.createDecipheriv('aes-256-cbc', ivEncryptionKeyBuffer, iv_static_0);
+    const ivCipher = crypto.createDecipheriv('aes-256-cbc', ivEncryptionKeyBuffer, iv_static);
     let decryptedIV = ivCipher.update(encryptedIV, 'base64', 'utf8');
     decryptedIV += ivCipher.final('utf8');
     const iv = Buffer.from(decryptedIV, 'base64');
