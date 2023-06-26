@@ -11,7 +11,6 @@ class Server {
         this.routes();
     }
 
-
     middlewares() {
 
         //Cors 
@@ -27,6 +26,7 @@ class Server {
 
         this.app.use('/encryption', require('../routes/encryption_routes'));
         this.app.use('/encryption2', require('../routes/encryption2_routes'));
+        this.app.use('/encryption3', require('../routes/encryption3_routes'));
 
     }
 
@@ -39,6 +39,5 @@ class Server {
     }
 
 }
-
 
 module.exports = Server;
