@@ -34,12 +34,10 @@ function funEncrypt(message, encryptionKey, ivEncryptionKey, iv_static) {
     const iv = crypto.randomBytes(16);
 
     const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-    let encrypted = cipher.update(message, 'utf8', 'base64');
-    encrypted += cipher.final('base64');
+    let encrypted = Buffer.concat([cipher.update(message), cipher.final()]).toString('base64');
 
-    const ivCipher = crypto.createCipheriv('aes-256-cbc', ivEncryptionKeyBuffer, Buffer.from(iv_static, 'base64'));
-    let encryptedIV = ivCipher.update(iv.toString('base64'), 'utf8', 'base64');
-    encryptedIV += ivCipher.final('base64');
+    const ivCipher = crypto.createCipheriv('aes-256-cbc', ivEncryptionKeyBuffer, textEncoder.encode(iv_static));
+    let encryptedIV = Buffer.concat([ivCipher.update(iv), ivCipher.final()]).toString('base64');
 
     const encryptedText = {
         encryptedIV,
@@ -54,10 +52,9 @@ function funDecrypt(encryptedIV, encryptedText, encryptionKey, ivEncryptionKey, 
     const key = textEncoder.encode(encryptionKey);
     const ivEncryptionKeyBuffer = textEncoder.encode(ivEncryptionKey);
 
-    const ivCipher = crypto.createDecipheriv('aes-256-cbc', ivEncryptionKeyBuffer, Buffer.from(iv_static, 'base64'));
-    let decryptedIV = ivCipher.update(Buffer.from(encryptedIV, 'base64'), 'base64', 'utf8');
-    decryptedIV += ivCipher.final('utf8');
-    const iv = Buffer.from(decryptedIV, 'base64');
+    const ivCipher = crypto.createDecipheriv('aes-256-cbc', ivEncryptionKeyBuffer, textEncoder.encode(iv_static));
+    let decryptedIV = ivCipher.update(Buffer.from(encryptedIV, 'base64'));
+    const iv = decryptedIV.toString('base64');
 
     const decipher = crypto.createDecipheriv('aes-256-cbc', key, Buffer.from(iv, 'base64'));
     let decrypted = decipher.update(Buffer.from(encryptedText, 'base64'), 'base64', 'utf8');
